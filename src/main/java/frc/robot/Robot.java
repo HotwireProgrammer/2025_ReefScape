@@ -34,13 +34,10 @@ public class Robot extends TimedRobot {
 	// motors here
 
 	public SparkMax climbingWinch = new SparkMax(20, MotorType.kBrushless);
-	public SparkMax armMotor1 = new SparkMax(30, MotorType.kBrushless);
-	public SparkMax armMotor2 = new SparkMax(31, MotorType.kBrushless);
-
-
+	public SparkMax armMotorTop = new SparkMax(30, MotorType.kBrushless);
+	public SparkMax armMotorBottom = new SparkMax(31, MotorType.kBrushless);
 
 	public Limelight limelight = new Limelight();
-
 
 	public enum DriveScale {
 		linear, squared, tangent, inverse, cb, cbrt,
@@ -56,23 +53,21 @@ public class Robot extends TimedRobot {
 
 	public String autoSelectKey = "autoMode";
 
-	// pneumatics
+	// 𝐏𝐧𝐞𝐮𝐦𝐚𝐭𝐢𝐜𝐬
 	public DoubleSolenoid climberSolenoid;
 	public DoubleSolenoid coralSolenoid;
+
 	public Compressor compressor;
 
+	public DigitalInput limitSwitchOne = new DigitalInput(0);
+	// public DigitalInput limitSwitchTwo = new DigitalInput(0);
+	// public Timer clawStopTimer = new Timer();
 
-	public DigitalInput limitSwitchOne = new DigitalInput(1);
-	public DigitalInput limitSwitchTwo = new DigitalInput(0);
-	public DigitalInput clawStop = new DigitalInput(6);
-	public Timer clawStopTimer = new Timer();
-
-	public boolean holding = false;
-	public boolean coralSolenoidState = false;
+	public boolean holding = false; // 🫵
+	public boolean coralSolenoidState = false; // 🪸
 	public boolean climberSolenoidState = false;
 
 	// public boolean climberSolenoidState = false;
-
 
 	public int climbStep = 0;
 	public Timer climberStepTimer;
@@ -89,11 +84,9 @@ public class Robot extends TimedRobot {
 
 	public void robotInit() {
 
-
 		compressor = new Compressor(PneumaticsModuleType.REVPH);
 		coralSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 0, 1);
 		// climberSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 2, 3);
-
 
 		limelight.SetLight(false);
 		limelight.Init();
@@ -164,6 +157,7 @@ public class Robot extends TimedRobot {
 
 	public void teleopPeriodic() {
 		// drive controls
+		// n^pow
 		double pow = 2;
 		double axisZero = Math.pow(driver.getRawAxis(0), pow)
 				* (driver.getRawAxis(0) / Math.abs(driver.getRawAxis(0)));
@@ -176,34 +170,37 @@ public class Robot extends TimedRobot {
 		}
 
 		if (operator.getRawButton(2)) {
-			climbingWinch.set(0.5);
+			climbingWinch.set(0.5); // Motor doesn't exist
 		}
 
 		if (operator.getRawButton(6)) {
-			armMotor1.set(0.5); // 𝐈𝐃 30
-			armMotor2.set(-0.5); // 𝐈𝐃 31
+			if (!limitSwitchOne.get()) {
+				armMotorTop.set(0.8); // 𝐈𝐃 30
+				// The bottom motor is also positive because the motor is inverted!
+				armMotorBottom.set(0.8);// 𝐈𝐃 31
+			} else {
+				armMotorTop.set(0.1); // 𝐈𝐃 30
+				// The bottom motor is also positive because the motor is inverted!
+				armMotorBottom.set(0.1);// 𝐈𝐃 31
+			}
+		} else if (operator.getRawButton(3)) {
+			// zero speeds
+			armMotorTop.set(-0.8);
+			armMotorBottom.set(-0.8);
 		} else {
-			armMotor1.set(0.0);
-			armMotor2.set(0.0);
+			// zero speeds
+			armMotorTop.set(0.0);
+			armMotorBottom.set(0.0);
 		}
-
-
 
 		// 𝐒𝐎𝐋𝐄𝐍𝐎𝐈𝐃 𝐒𝐖𝐈𝐓𝐂𝐇𝐄𝐒
 
 		// Value v = coralSolenoid.get();
 		// SmartDashboard.putString("solenoid", v.toString());
-		
+
 		// Toggle for the solenoid controlling the coral mechanism
-		if (operator.getRawButtonPressed(1))
-		{
-			if (coralSolenoidState) {
-				coralSolenoidState = false;
-			}
-			else
-			{
-				coralSolenoidState = true;
-			}
+		if (operator.getRawButtonPressed(1)) {
+			coralSolenoidState = !coralSolenoidState;
 		}
 
 		if (coralSolenoidState) {
@@ -211,29 +208,28 @@ public class Robot extends TimedRobot {
 		} else {
 			coralSolenoid.set(Value.kReverse);
 		}
-		
+
 		// Value v = climberSolenoid.get();
 		// SmartDashboard.putString("solenoid", v.toString());
 
 		// Toggle for the solenoid controlling the climbing hooks
-		
-		// 	if (operator.getRawButtonPressed(4))
+
+		// if (operator.getRawButtonPressed(4))
 		// {
-		// 	if (climberSolenoidState == true) {
-		// 		climberSolenoidState = false;
-		// 	}
-		// 	else
-		// 	{
-		// 		climberSolenoidState = true;
-		// 	}
+		// if (climberSolenoidState == true) {
+		// climberSolenoidState = false;
+		// }
+		// else
+		// {
+		// climberSolenoidState = true;
+		// }
 		// }
 
 		// if (climberSolenoidState == true) {
-		// 	climberSolenoid.set(Value.kForward);
+		// climberSolenoid.set(Value.kForward);
 		// } else {
-		// 	climberSolenoid.set(Value.kReverse);
+		// climberSolenoid.set(Value.kReverse);
 		// }
-
 
 		swerveDrive.drive(
 				-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
