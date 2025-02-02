@@ -28,10 +28,10 @@ public class SwerveAutoDriveStep extends AutoStep {
     }
 
     public void Update() {
-        swerve.drive(xSpeed, ySpeed, Spin, true, true);
+        swerve.drive(xSpeed, ySpeed, Spin, false, true);
         if (timer.get() > time) {
             isDone = true;
-            swerve.drive(0, 0, 0, true, true);
+            swerve.drive(0, 0, 0, false, true);
         }
     }
 }

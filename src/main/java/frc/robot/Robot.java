@@ -20,12 +20,15 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.autostep.AutoStep;
 import frc.robot.autostep.LimelightTrack;
 import frc.robot.autostep.NavxTurn;
+import frc.robot.autostep.SolenoidStep;
 import frc.robot.autostep.SwerveAutoDriveStep;
+import frc.robot.autostep.Wait;
 import frc.robot.swerve.Constants.OIConstants;
 import frc.robot.swerve.DriveSubsystem;
 
 public class Robot extends TimedRobot {
-
+	// Timer
+	Timer timer1 = new Timer();
 	// Joysticks
 	public Joystick operator;
 	public boolean arcadeDrive = false;
@@ -33,9 +36,11 @@ public class Robot extends TimedRobot {
 
 	// motors here
 
-	public SparkMax climbingWinch = new SparkMax(20, MotorType.kBrushless);
+	public SparkMax climbingWinch = new SparkMax(20, MotorType.kBrushless); // To be attached
 	public SparkMax armMotorTop = new SparkMax(30, MotorType.kBrushless);
 	public SparkMax armMotorBottom = new SparkMax(31, MotorType.kBrushless);
+	
+	
 
 	public Limelight limelight = new Limelight();
 
@@ -56,16 +61,20 @@ public class Robot extends TimedRobot {
 	// 𝐏𝐧𝐞𝐮𝐦𝐚𝐭𝐢𝐜𝐬
 	public DoubleSolenoid climberSolenoid;
 	public DoubleSolenoid coralSolenoid;
+	public DoubleSolenoid algaeSolenoid;
+
 
 	public Compressor compressor;
 
 	public DigitalInput limitSwitchOne = new DigitalInput(0);
-	// public DigitalInput limitSwitchTwo = new DigitalInput(0);
+	public DigitalInput limitSwitchTwo = new DigitalInput(1);
 	// public Timer clawStopTimer = new Timer();
 
-	public boolean holding = false; // 🫵
-	public boolean coralSolenoidState = false; // 🪸
+	public boolean holding = false;
+	public boolean coralSolenoidState = false;
 	public boolean climberSolenoidState = false;
+	public boolean algaeSolenoidState = false;
+
 
 	// public boolean climberSolenoidState = false;
 
@@ -78,15 +87,18 @@ public class Robot extends TimedRobot {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
 	}
 
+
+
 	public Robot() {
 		super();
 	}
 
 	public void robotInit() {
-
+		// PH ports 0 & 1 DON'T WORK
 		compressor = new Compressor(PneumaticsModuleType.REVPH);
-		coralSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 0, 1);
+		coralSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 14, 15);
 		// climberSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 2, 3);
+		algaeSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 4, 5);
 
 		limelight.SetLight(false);
 		limelight.Init();
@@ -97,46 +109,66 @@ public class Robot extends TimedRobot {
 	}
 
 	public void disabledInit() {
-
-		// Controllers
-		operator = new Joystick(2);
+		// 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐋𝐄𝐑𝐒 🎮
 		driver = new Joystick(1);
+		operator = new Joystick(2);
 	}
-
 	public void disabledPeriodic() {
-
+	
 	}
 
 	public void autonomousInit() {
 		currentAutoStep = 0;
 
 		firstAuto = new LinkedList<AutoStep>();
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0, 0, 1.0f));
-		firstAuto.add(new LimelightTrack(swerveDrive, null, limelight));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0, 0, 1.0f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 90, 0, 1));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.5f, 0.0f, 0.0f, 1.0f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -45.0f, 0.0f, 2.0f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.5f, 0.0f, 0.0f, 0.40f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.0f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0.0f, 0.0f, 0.25f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 40.0f, 0, 2.0f));
+		firstAuto.add(new Wait(0.10f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.45f, 0.0f, 0.0f, 2.0f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 65.0f, 0.0f, 2.0f));
+		firstAuto.add(new Wait(0.10f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.60f));
 
+
+		// firstAuto.add(new SolenoidStep(coralSolenoid, Value.kForward));
+		// firstAuto.add(new Wait(1.0f));
+		// firstAuto.add(new SolenoidStep(coralSolenoid, Value.kReverse));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0.0f, 0.0f, 1.0f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 45.0f, 0.0f, 1.0f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0.0f, 0.0f, 1.5f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -45.0f, 0.0f, 1.0f));
+		// firstAuto.add(new Wait(1.5f));
+
+
+
+
+
+		
 		autonomousSelected = firstAuto;
+		
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
 	}
-
 	public void autonomousPeriodic() {
-
 		// autonomous loop
-		// System.out.println("Current auto step " + currentAutoStep);
+		System.out.println("Current auto step " + currentAutoStep);
 		if (currentAutoStep < autonomousSelected.size()) {
 
 			autonomousSelected.get(currentAutoStep).Update();
 
 			if (autonomousSelected.get(currentAutoStep).isDone) {
-				currentAutoStep = currentAutoStep + 1;
+				currentAutoStep += 1;
 				if (currentAutoStep < autonomousSelected.size()) {
 					autonomousSelected.get(currentAutoStep).Begin();
 				}
 			}
 		} else {
-			// stop drivetrain
+			// Stops the drivetrain.
 			swerveDrive.drive(0, 0, 0, false, true);
 		}
 
@@ -149,56 +181,73 @@ public class Robot extends TimedRobot {
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
 
-		// Controllers
+		// 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐋𝐄𝐑𝐒 🎮
 		driver = new Joystick(1);
 		operator = new Joystick(2);
 
 	}
-
 	public void teleopPeriodic() {
-		// drive controls
-		// n^pow
+		
+
+
+		
+		// 𝐃𝐑𝐈𝐕𝐄𝐑 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐒 *slightly improved
 		double pow = 2;
-		double axisZero = Math.pow(driver.getRawAxis(0), pow)
-				* (driver.getRawAxis(0) / Math.abs(driver.getRawAxis(0)));
-		double axisOne = Math.pow(driver.getRawAxis(1), pow)
-				* (driver.getRawAxis(1) / Math.abs(driver.getRawAxis(1)));
+		double a0 = driver.getRawAxis(0);
+		double a1 = driver.getRawAxis(1);
+		double axisZero = Math.pow(a0, pow) * Math.signum(a0);
+		double axisOne = Math.pow(a1, pow) * Math.signum(a1); //ε
+		
 
 		if (driver.getRawButton(6)) {
-			axisZero = axisZero * 0.25;
-			axisOne = axisOne * 0.25;
+			axisZero = axisZero / 4;
+			axisOne = axisOne / 4;
 		}
 
 		if (operator.getRawButton(2)) {
 			climbingWinch.set(0.5); // Motor doesn't exist
 		}
 
+
+
+
+		// 𝐀𝐑𝐌 𝐌𝐎𝐓𝐎𝐑 𝐋𝐎𝐆𝐈𝐂
 		if (operator.getRawButton(6)) {
-			if (!limitSwitchOne.get()) {
-				armMotorTop.set(0.8); // 𝐈𝐃 30
-				// The bottom motor is also positive because the motor is inverted!
-				armMotorBottom.set(0.8);// 𝐈𝐃 31
+			// Limit-switches return 𝘁𝗿𝘂𝗲 when blocked!
+			if (!(limitSwitchOne.get() || limitSwitchTwo.get())) { // L1 nor L2
+				// grab
+				armMotorTop.set(0.8);
+				armMotorBottom.set(0.8);
+				// algaeSolenoidState = true;
 			} else {
-				armMotorTop.set(0.1); // 𝐈𝐃 30
-				// The bottom motor is also positive because the motor is inverted!
-				armMotorBottom.set(0.1);// 𝐈𝐃 31
+				// hold
+				armMotorTop.set(0.1);
+				armMotorBottom.set(0.1);
+				// algaeSolenoidState = false;
 			}
 		} else if (operator.getRawButton(3)) {
-			// zero speeds
+			// expell
 			armMotorTop.set(-0.8);
 			armMotorBottom.set(-0.8);
 		} else {
-			// zero speeds
+			// default
 			armMotorTop.set(0.0);
 			armMotorBottom.set(0.0);
 		}
 
+
+
+		
+
+
+
+		
 		// 𝐒𝐎𝐋𝐄𝐍𝐎𝐈𝐃 𝐒𝐖𝐈𝐓𝐂𝐇𝐄𝐒
 
 		// Value v = coralSolenoid.get();
 		// SmartDashboard.putString("solenoid", v.toString());
 
-		// Toggle for the solenoid controlling the coral mechanism
+		// coral solenoid
 		if (operator.getRawButtonPressed(1)) {
 			coralSolenoidState = !coralSolenoidState;
 		}
@@ -208,6 +257,19 @@ public class Robot extends TimedRobot {
 		} else {
 			coralSolenoid.set(Value.kReverse);
 		}
+
+
+		// algae solenoid
+		if (operator.getRawButtonPressed(5)) {
+			algaeSolenoidState = !algaeSolenoidState;
+		}
+
+		if (algaeSolenoidState) {
+			algaeSolenoid.set(Value.kForward);
+		} else {
+			algaeSolenoid.set(Value.kReverse);
+		}
+
 
 		// Value v = climberSolenoid.get();
 		// SmartDashboard.putString("solenoid", v.toString());
@@ -232,9 +294,9 @@ public class Robot extends TimedRobot {
 		// }
 
 		swerveDrive.drive(
-				-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband), // 0.05
+				-MathUtil.applyDeadband(axisZero, OIConstants.kDriveDeadband), // 0.05
+				-MathUtil.applyDeadband(driver.getRawAxis(4), OIConstants.kDriveDeadband), // 0.05
 				true, true);
 
 		// zero
@@ -247,7 +309,7 @@ public class Robot extends TimedRobot {
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
 
 		float multiplier = (ControllerInput / (float) Math.abs(ControllerInput));
-
+		// float multiplier = Math.signum(ControllerInput);
 		if (selection == DriveScale.squared) {
 			float output = multiplier * (float) (ControllerInput * ControllerInput);
 
@@ -275,54 +337,30 @@ public class Robot extends TimedRobot {
 
 	public void testPeriodic() {
 		swerveDrive.drive(
-				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband),
-				MathUtil.applyDeadband(driver.getRawAxis(1), OIConstants.kDriveDeadband),
-				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband),
+				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband), // 0.05
+				MathUtil.applyDeadband(driver.getRawAxis(1), OIConstants.kDriveDeadband), // 0.05
+				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband), // 0.05
 				true, false);
 	}
 
 	public static float Lerp(float v0, float v1, float t) {
-
-		if (t < 0) {
-			t = 0;
-
-		} else if (t > 1) {
-			t = 1;
-		}
-
+		/*
+		t = Math.abs(t);
+		if (t > 1) {t = 1;}
+		return (v0 + t * (v1 - v0));
+		*/
+		if (t < 0) {t = 0;} else if (t > 1) {t = 1;}
 		return (v0 + t * (v1 - v0));
 	}
 
 	public float TranslateController(float input) {
 		float deadzone = 0.15f;
-		if (input > -deadzone && input < deadzone) {
+		if ((input > -deadzone) && (input < deadzone)) {
 			input = 0.0f;
 		}
 		float a = 0.7f;
-		float output = (a * input * input * input) + (1 - a) * input;
+		float output = (a * ((float)Math.pow(input ,3))) + (1 - a) * input;
 		return output;
 	}
 
 }
-
-// ⣿⣿⣿⣿⣿⣿⣿⢿⠟⠛⠿⠻⠿⠿⠟⠿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-// ⣿⣿⣿⡿⠛⢙⣨⣥⣶⣶⣿⢿⣿⣿⣷⣦⣅⠛⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-// ⣿⣿⠟⢀⡴⠟⠋⢉⣀⣠⣤⣤⣤⣀⠉⠻⣿⣧⡈⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-// ⣿⣿⠀⠁⣠⣴⣾⣿⣿⣿⣿⣿⣿⣿⣷⠀⢻⣿⣇⠝⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-// ⣿⣿⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⡀⣼⡿⠟⠀⠙⣛⣬⠱⣿⣿⣿⣿⣿⣿
-// ⣿⣿⠀⠹⣿⣿⣿⣿⣿⣿⣿⣿⠿⠋⢀⠄⠁⣠⣶⣾⣿⣿⣿⡆⣼⣿⣿⣿⣿⣿
-// ⣿⣿⠀⣀⠙⣛⣛⣻⠛⠋⣉⣢⣤⣾⠃⣰⡄⠸⣿⣿⣿⣿⣿⣷⠘⣿⣿⣿⣿⣿
-// ⣿⣿⣤⢹⣷⣶⣶⣶⣾⣿⣿⣿⣿⣿⡄⠸⣷⠀⢻⣿⣿⡿⠟⠛⠡⣿⣿⣿⣿⣿
-// ⣿⣿⣿⠄⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠄⠻⠇⢈⠁⠀⠀⠲⠠⠞⠿⣿⣿⣿⣿
-// ⣿⣿⣿⣷⠈⢿⣿⣿⣿⣿⣿⣿⣿⣿⣷⣶⣶⢤⠀⠀⢲⣿⣿⣿⣷⣤⡉⣻⣿⣿
-// ⣿⣿⣿⣿⣧⠈⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣳⡀⢻⣿⣿⣿⣿⣷⠐⣿⣿
-// ⣿⣿⣿⣿⣿⣯⡈⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣾⡇⡆⣿⣿⣿⣿⡟⣀⣿⣿
-// ⣿⣿⣿⣿⣿⣿⣷⡀⢻⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠃⢃⡿⠿⠛⡋⣀⣾⣿⣿
-// ⣿⣿⣿⣿⣿⣿⣿⣷⣀⠹⣿⣿⣿⣿⣿⣿⣿⠿⠋⢁⣠⣿⡦⠐⠀⢈⡙⢿⣿⣿
-// ⣿⣿⣿⣿⣿⣿⣿⣿⠋⢀⣿⣿⣿⣿⠟⢃⣤⣤⡀⠻⣿⣇⣠⣴⡿⠄⠹⣧⡸⣿
-// ⣿⣿⣿⣿⣿⣿⡿⠃⢠⣾⣿⣿⡿⢋⣤⣿⣿⣿⣿⣄⠈⢿⡿⠋⣠⣤⣀⠈⣡⣿
-// ⣿⣿⣿⠅⣀⣈⠁⣰⣿⣿⡿⠋⣤⣾⣿⣿⣿⣿⣿⣿⣷⣵⣂⣽⣿⣿⣿⣿⣿⣿
-// ⣿⣿⣿⣄⠘⢿⣿⣿⠟⠋⣠⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-// ⣿⣿⣿⣿⣷⣤⣬⣅⣶⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿
-
-// yam yam

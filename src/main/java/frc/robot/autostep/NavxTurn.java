@@ -31,7 +31,7 @@ public class NavxTurn extends AutoStep {
 
         //float goodEnoughDeg = 5.0f;
         if (degreeDifference < goodEnoughDeg) {
-            driveTrain.drive(0, 0, 0, true, true);
+            driveTrain.drive(0, 0, 0, false, true);
             isDone = true;
         }
     }
