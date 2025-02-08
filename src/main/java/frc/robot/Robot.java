@@ -47,8 +47,11 @@ public class Robot extends TimedRobot {
 
 	public SparkMax climbingWinch = new SparkMax(21, MotorType.kBrushless);
 	public SparkMax climberFlaps = new SparkMax(22, MotorType.kBrushless);
+
 	public SparkMax armMotorTop = new SparkMax(31, MotorType.kBrushless);
 	public SparkMax armMotorBottom = new SparkMax(32, MotorType.kBrushless);
+	public SparkMax armMotorRotate = new SparkMax(33, MotorType.kBrushless);
+
 	public boolean climberFlapsState = false;
 
 	public Limelight limelight = new Limelight();
@@ -204,7 +207,8 @@ public class Robot extends TimedRobot {
 		limelight.SetLight(false);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
-		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0); // Try changing 'value' to '1'
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0); // Try changing
+																									// 'value' to '1'
 
 		// 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐋𝐄𝐑𝐒 🎮
 		driver = new Joystick(1);
@@ -212,6 +216,7 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopPeriodic() {
+
 		// 𝐃𝐑𝐈𝐕𝐄𝐑 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐒
 		double pow = 2;
 		double a0 = driver.getRawAxis(0);
@@ -223,7 +228,6 @@ public class Robot extends TimedRobot {
 			axisZero = axisZero / 4;
 			axisOne = axisOne / 4;
 		}
-
 
 		// 𝐀𝐑𝐌 𝐌𝐎𝐓𝐎𝐑 𝐋𝐎𝐆𝐈𝐂
 		if (operator.getRawButton(6)) {
@@ -274,8 +278,6 @@ public class Robot extends TimedRobot {
 			algaeSolenoid.set(Value.kReverse);
 		}
 
-
-
 		double axis2 = operator.getRawAxis(2);
 		double axis3 = operator.getRawAxis(3);
 		if (axis2 >= 0.1) {
@@ -292,18 +294,13 @@ public class Robot extends TimedRobot {
 		 * winch dunno
 		 */
 
-
-		// System.out.println(ANSIcolors.RED + "Limit Switch 3 - " + limitSwitchThree.get() + ANSIcolors.RESET);
-
+		// System.out.println(ANSIcolors.RED + "Limit Switch 3 - " +
+		// limitSwitchThree.get() + ANSIcolors.RESET);
 
 		// Value v = climberSolenoid.get();
 		// SmartDashboard.putString("solenoid", v.toString());
 
 		// Toggle for the solenoid controlling the climbing hooks
-
-		
-
-
 
 		if (operator.getRawButtonPressed(4)) {
 			if (climberSolenoidState) {
@@ -320,35 +317,35 @@ public class Robot extends TimedRobot {
 		}
 
 		// if (operator.getRawButtonPressed(7)) {
-		// 	if (climberFlapsState) { // false = up, true = down.
-		// 		climberFlaps.set(-0.10);
-		// 	} else {
-		// 		climberFlaps.set(0.10);
-		// 	}
+		// if (climberFlapsState) { // false = up, true = down.
+		// climberFlaps.set(-0.10);
+		// } else {
+		// climberFlaps.set(0.10);
+		// }
 
-		// 	timer2.reset();
-		// 	timer2.start();
+		// timer2.reset();
+		// timer2.start();
 
 		// } // Toggles climberFlaps
 		// if (timer2.get() >= 0.7) {
-		// 	climberFlapsState = !climberFlapsState;
-		// 	timer2.stop();
-		// 	climberFlaps.set(0);
+		// climberFlapsState = !climberFlapsState;
+		// timer2.stop();
+		// climberFlaps.set(0);
 		// }
 		// // ONLY ENABLES if the LS & flaps are down!
-		
+
 		// if (limitSwitchThree.get() && climberFlapsState) {
-		// 	timer1.reset();
-		// 	timer1.start();
-		// 	climberSolenoid.set(Value.kForward);
-		// 	if (timer1.get() >= 0.5) {
-		// 		climbingWinch.set(0.10);
-		// 	}
-		// 	if (timer1.get() >= 2) {
-		// 		climbingWinch.set(0);
-		// 	}
+		// timer1.reset();
+		// timer1.start();
+		// climberSolenoid.set(Value.kForward);
+		// if (timer1.get() >= 0.5) {
+		// climbingWinch.set(0.10);
+		// }
+		// if (timer1.get() >= 2) {
+		// climbingWinch.set(0);
+		// }
 		// } else {
-		// 	climbingWinch.set(0);
+		// climbingWinch.set(0);
 		// }
 
 		swerveDrive.drive(
@@ -363,6 +360,16 @@ public class Robot extends TimedRobot {
 
 		}
 
+		final double hCoefficent = 0.25;
+		double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition();
+		double angleDeterminedSpeed = Math.cos(encoderVal);
+		System.out.println("Speed : " + angleDeterminedSpeed);
+		if (operator.getRawButton(7)) {
+			System.out.println("Motor enabled");
+			armMotorRotate.set(-(hCoefficent * angleDeterminedSpeed));
+		} else {
+			armMotorRotate.set(0);
+		}
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
