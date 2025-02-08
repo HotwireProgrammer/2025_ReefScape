@@ -4,6 +4,7 @@
 
 package frc.robot.swerve;
 
+import com.revrobotics.AbsoluteEncoder;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
@@ -280,7 +281,7 @@ public class DriveSubsystem extends SubsystemBase {
     // System.out.println("yaw - " + m_gyro.getYaw());
 
     // calculate
-    float pidOut = (float) pid_rot.calculate(x, targetRotationDegrees);
+    float pidOut = (float) pid_rot.calculate(x, targetRotationDegrees); // add 'x' to 'targetRotationDegrees'? ⭐
 
     drive(0, 0, -pidOut, true, true);
   }  

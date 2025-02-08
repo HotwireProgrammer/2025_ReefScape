@@ -202,5 +202,5 @@ public class Arm {
 
     // double powerArm =
     // (-flightStickLeft.getRawAxis(1)*10/RobotController.getBatteryVoltage());
-
+    
 }

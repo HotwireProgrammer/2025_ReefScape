@@ -1,8 +1,10 @@
 package frc.robot;
-
+// Imports
 import java.util.LinkedList;
-
+import frc.robot.ANSIcolors;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.AbsoluteEncoder;
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.MathUtil;
@@ -18,6 +20,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.autostep.AutoStep;
+import frc.robot.autostep.DriveDistanceStep;
 import frc.robot.autostep.LimelightTrack;
 import frc.robot.autostep.NavxTurn;
 import frc.robot.autostep.SolenoidStep;
@@ -25,8 +28,11 @@ import frc.robot.autostep.SwerveAutoDriveStep;
 import frc.robot.autostep.Wait;
 import frc.robot.swerve.Constants.OIConstants;
 import frc.robot.swerve.DriveSubsystem;
+import frc.robot.autostep.AutoStep;
+import frc.robot.Auto;
 
 public class Robot extends TimedRobot {
+
 	// Timer
 	Timer timer1 = new Timer();
 	// Joysticks
@@ -35,11 +41,12 @@ public class Robot extends TimedRobot {
 	public Joystick driver;
 
 	// motors here
+	// arm motors relative to pick-up position
 
-	public SparkMax climbingWinch = new SparkMax(20, MotorType.kBrushless); // To be attached
-	public SparkMax armMotorTop = new SparkMax(30, MotorType.kBrushless);
-	public SparkMax armMotorBottom = new SparkMax(31, MotorType.kBrushless);
-	
+	public SparkMax climbingWinch = new SparkMax(21, MotorType.kBrushless);
+	public SparkMax armMotorTop = new SparkMax(31, MotorType.kBrushless);
+	public SparkMax armMotorBottom = new SparkMax(32, MotorType.kBrushless);
+
 	
 
 	public Limelight limelight = new Limelight();
@@ -52,6 +59,7 @@ public class Robot extends TimedRobot {
 
 	// Auto
 	public LinkedList<AutoStep> firstAuto;
+	public LinkedList<AutoStep> testAuto;
 
 	public LinkedList<AutoStep> autonomousSelected;
 	public int currentAutoStep = 0;
@@ -81,7 +89,7 @@ public class Robot extends TimedRobot {
 	public int climbStep = 0;
 	public Timer climberStepTimer;
 	public boolean firstClick = false;
-	public Boolean secondClick = false;
+	public boolean secondClick = false;
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -94,12 +102,12 @@ public class Robot extends TimedRobot {
 	}
 
 	public void robotInit() {
-		// PH ports 0 & 1 DON'T WORK
 		compressor = new Compressor(PneumaticsModuleType.REVPH);
-		coralSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 14, 15);
-		// climberSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 2, 3);
+		coralSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 0, 1);
+		climberSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 2, 3);
 		algaeSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 4, 5);
-
+		
+		// Limelight
 		limelight.SetLight(false);
 		limelight.Init();
 		SmartDashboard.putNumber(autoSelectKey, 0);
@@ -121,18 +129,29 @@ public class Robot extends TimedRobot {
 		currentAutoStep = 0;
 
 		firstAuto = new LinkedList<AutoStep>();
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.5f, 0.0f, 0.0f, 1.0f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.65f, 0.0f, 0.0f, 1.025f));
 		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -45.0f, 0.0f, 2.0f));
 		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.5f, 0.0f, 0.0f, 0.40f));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.0f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0.0f, 0.0f, 0.25f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 40.0f, 0, 2.0f));
-		firstAuto.add(new Wait(0.10f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0.0f, 0.0f, 0.30f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 65.0f, 0.0f, 2.0f));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.45f, 0.0f, 0.0f, 2.0f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 65.0f, 0.0f, 2.0f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 118.0f, 0.0f, 2.0f));
 		firstAuto.add(new Wait(0.10f));
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.60f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.50f, 0.0f, 0.0f, 0.60f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 55.0f, 0.0f, 2.0f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.45f, 0.0f, 0.0f, 2.0f));
+		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 1.0f, 0.0f, 2.0f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
+		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.35f));
+
+
+
+		// Turning test EXPERIMENTAL
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, (float) limelight.GetX(), 0.0f, 1.0f));
 
 
 		// firstAuto.add(new SolenoidStep(coralSolenoid, Value.kForward));
@@ -144,19 +163,22 @@ public class Robot extends TimedRobot {
 		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -45.0f, 0.0f, 1.0f));
 		// firstAuto.add(new Wait(1.5f));
 
+		testAuto = new LinkedList<AutoStep>(); // Attempt once ⭐ method in 'DriveSubsystem' is implemented.
+		for (int I585 = 0; I585 < 5; I585++) {
+		testAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, (float) limelight.GetX(), 0.0f, 0.4f));
+		testAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.3f, 0.0f, 0.0f, 0.25f));}
 
 
-
-
-		
-		autonomousSelected = firstAuto;
+		autonomousSelected = firstAuto; // Auto Selection
 		
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
 	}
 	public void autonomousPeriodic() {
 		// autonomous loop
-		System.out.println("Current auto step " + currentAutoStep);
+
+
+		// System.out.println(ANSIcolors.PURPLE + "Current auto step " + currentAutoStep + ANSIcolors.RESET);
 		if (currentAutoStep < autonomousSelected.size()) {
 
 			autonomousSelected.get(currentAutoStep).Update();
@@ -179,19 +201,14 @@ public class Robot extends TimedRobot {
 		limelight.SetLight(false);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
-		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0);
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0); // Try changing 'value' to '1'
 
 		// 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐋𝐄𝐑𝐒 🎮
 		driver = new Joystick(1);
 		operator = new Joystick(2);
-
 	}
 	public void teleopPeriodic() {
-		
-
-
-		
-		// 𝐃𝐑𝐈𝐕𝐄𝐑 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐒 *slightly improved
+		// 𝐃𝐑𝐈𝐕𝐄𝐑 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐒
 		double pow = 2;
 		double a0 = driver.getRawAxis(0);
 		double a1 = driver.getRawAxis(1);
@@ -201,13 +218,9 @@ public class Robot extends TimedRobot {
 
 		if (driver.getRawButton(6)) {
 			axisZero = axisZero / 4;
-			axisOne = axisOne / 4;
-		}
+			axisOne = axisOne / 4;}
 
-		if (operator.getRawButton(2)) {
-			climbingWinch.set(0.5); // Motor doesn't exist
-		}
-
+		if (operator.getRawButton(2)) {climbingWinch.set(0.5); /*Motor doesn't exist*/}
 
 
 
@@ -225,15 +238,12 @@ public class Robot extends TimedRobot {
 				armMotorBottom.set(0.1);
 				// algaeSolenoidState = false;
 			}
-		} else if (operator.getRawButton(3)) {
-			// expell
+		} else if (operator.getRawButton(3)) {// expell
 			armMotorTop.set(-0.8);
 			armMotorBottom.set(-0.8);
-		} else {
-			// default
+		} else {// default
 			armMotorTop.set(0.0);
-			armMotorBottom.set(0.0);
-		}
+			armMotorBottom.set(0.0);}
 
 
 
@@ -248,27 +258,17 @@ public class Robot extends TimedRobot {
 		// SmartDashboard.putString("solenoid", v.toString());
 
 		// coral solenoid
-		if (operator.getRawButtonPressed(1)) {
-			coralSolenoidState = !coralSolenoidState;
-		}
+		if (operator.getRawButtonPressed(1)) {coralSolenoidState = !coralSolenoidState;}
 
-		if (coralSolenoidState) {
-			coralSolenoid.set(Value.kForward);
-		} else {
-			coralSolenoid.set(Value.kReverse);
-		}
+		if (coralSolenoidState) {coralSolenoid.set(Value.kForward);
+		} else {coralSolenoid.set(Value.kReverse);}
 
 
 		// algae solenoid
-		if (operator.getRawButtonPressed(5)) {
-			algaeSolenoidState = !algaeSolenoidState;
-		}
+		if (operator.getRawButtonPressed(5)) {algaeSolenoidState = !algaeSolenoidState;}
 
-		if (algaeSolenoidState) {
-			algaeSolenoid.set(Value.kForward);
-		} else {
-			algaeSolenoid.set(Value.kReverse);
-		}
+		if (algaeSolenoidState) {algaeSolenoid.set(Value.kForward);
+		} else {algaeSolenoid.set(Value.kReverse);}
 
 
 		// Value v = climberSolenoid.get();
@@ -304,6 +304,8 @@ public class Robot extends TimedRobot {
 			swerveDrive.zeroHeading();
 
 		}
+
+
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {
@@ -311,7 +313,7 @@ public class Robot extends TimedRobot {
 		float multiplier = (ControllerInput / (float) Math.abs(ControllerInput));
 		// float multiplier = Math.signum(ControllerInput);
 		if (selection == DriveScale.squared) {
-			float output = multiplier * (float) (ControllerInput * ControllerInput);
+			float output = multiplier * (float) (Math.pow(ControllerInput, 2));
 
 			return output;
 
@@ -336,6 +338,9 @@ public class Robot extends TimedRobot {
 	}
 
 	public void testPeriodic() {
+		SmartDashboard.putNumber("navx turn value", swerveDrive.m_gyro.getYaw());
+		SmartDashboard.putNumber("navx get angle", swerveDrive.m_gyro.getAngle());
+		SmartDashboard.putNumber("navx get pitch", swerveDrive.m_gyro.getPitch());
 		swerveDrive.drive(
 				-MathUtil.applyDeadband(driver.getRawAxis(0), OIConstants.kDriveDeadband), // 0.05
 				MathUtil.applyDeadband(driver.getRawAxis(1), OIConstants.kDriveDeadband), // 0.05
@@ -362,5 +367,4 @@ public class Robot extends TimedRobot {
 		float output = (a * ((float)Math.pow(input ,3))) + (1 - a) * input;
 		return output;
 	}
-
 }
