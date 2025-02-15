@@ -35,7 +35,7 @@ public class DriveDistanceStep extends AutoStep {
 
     public void Update() {
         if (!(x_completion && y_completion)) {
-            System.out.print(ANSIcolors.RED + "Error_x = " + (swerve.getPose().getX()) + ANSIcolors.R);
+            System.out.print(ANSIcolors.RED + "Error_x = " + (swerve.getPose().getX()) + ANSIcolors.RESET);
             System.out.print("Error_y = " + (swerve.getPose().getY()));
             x_completion = (Math.abs(swerve.getPose().getX() - start_pos.getX()) > Math.abs(x_distance));
             y_completion = (Math.abs(swerve.getPose().getY() - start_pos.getY()) > Math.abs(y_distance));

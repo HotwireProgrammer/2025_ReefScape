@@ -20,7 +20,7 @@ import edu.wpi.first.math.util.Units;
  * wherever the
  * constants are needed, to reduce verbosity.
  */
-public final class Constants {
+public class Constants {
   public static final double TAU = 6.28318530717958647692;
   public static final class DriveConstants {
     // Driving Parameters - Note that these are not the maximum capable speeds of
@@ -58,30 +58,24 @@ public final class Constants {
     // 5 - 6
     // 7 - 8
 
-    // public static int[] IDs = {1,17,3,5,2,18,4,6,10,9,11,7,13,15,12,8,14,16};
 
-    // public static int drivetainNum = 2; // 1 or 2
+    public static int[] IDs = {
 
-    // public static final int kFrontLeftDrivingCanId = IDs[(0 + ((drivetainNum - 1) * 10))];
-    // public static final int kRearLeftDrivingCanId = IDs[(1 + ((drivetainNum - 1) * 10))];
-    // public static final int kFrontRightDrivingCanId = IDs[(2 + ((drivetainNum - 1) * 10))];
-    // public static final int kRearRightDrivingCanId = IDs[(3 + ((drivetainNum - 1) * 10))];
+       1 , 7 , 3 , 5 , 2 , 8 , 4 , 6 , 10 , 9 , 11 , 17 , 13 , 15 , 12 , 18 , 14 , 16 
 
-    // public static final int kFrontLeftTurningCanId = IDs[(4 + ((drivetainNum - 1) * 10))];   
-    // public static final int kRearLeftTurningCanId = IDs[(5 + ((drivetainNum - 1) * 10))];
-    // public static final int kFrontRightTurningCanId = IDs[(6 + ((drivetainNum - 1) * 10))];
-    // public static final int kRearRightTurningCanId = IDs[(7 + ((drivetainNum - 1) * 10))];
+      };
 
-    
-    public static final int kFrontLeftDrivingCanId = 11;
-    public static final int kRearLeftDrivingCanId = 7;
-    public static final int kFrontRightDrivingCanId = 13;
-    public static final int kRearRightDrivingCanId = 15;
+    public static int drivetrainNum = 2; // 1 or 2
 
-    public static final int kFrontLeftTurningCanId = 12;
-    public static final int kRearLeftTurningCanId = 8;
-    public static final int kFrontRightTurningCanId = 14;
-    public static final int kRearRightTurningCanId = 16;
+    public static int kFrontLeftDrivingCanId = IDs[(0 + ((drivetrainNum - 1) * 10))];
+    public static int kRearLeftDrivingCanId = IDs[(1 + ((drivetrainNum - 1) * 10))];
+    public static int kFrontRightDrivingCanId = IDs[(2 + ((drivetrainNum - 1) * 10))];
+    public static int kRearRightDrivingCanId = IDs[(3 + ((drivetrainNum - 1) * 10))];
+
+    public static int kFrontLeftTurningCanId = IDs[(4 + ((drivetrainNum - 1) * 10))];   
+    public static int kRearLeftTurningCanId = IDs[(5 + ((drivetrainNum - 1) * 10))];
+    public static int kFrontRightTurningCanId = IDs[(6 + ((drivetrainNum - 1) * 10))];
+    public static int kRearRightTurningCanId = IDs[(7 + ((drivetrainNum - 1) * 10))];
     
 
 

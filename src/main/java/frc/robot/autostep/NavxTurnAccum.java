@@ -4,7 +4,7 @@ import com.studica.frc.AHRS;
 import frc.robot.swerve.DriveSubsystem;
 import frc.robot.ANSIcolors;
 
-public class NavxTurn extends AutoStep {
+public class NavxTurnAccum extends AutoStep {
 
     public AHRS navx;
     public float turnDegree;
@@ -14,7 +14,7 @@ public class NavxTurn extends AutoStep {
 
     public DriveSubsystem driveTrain;
 
-    public NavxTurn(DriveSubsystem driveTrain, AHRS navx, float turnDegree, float speed, float goodEnoughDeg) {
+    public NavxTurnAccum(DriveSubsystem driveTrain, AHRS navx, float turnDegree, float speed, float goodEnoughDeg) {
         super();
         this.navx = navx;
         this.speed = speed;
@@ -28,15 +28,13 @@ public class NavxTurn extends AutoStep {
      }
 
     public void Update() {
-        System.out.println(ANSIcolors.RED + "navxTurn turnDegree: " + turnDegree + ANSIcolors.RESET);
         float degreeDifference = Math.abs(navx.getYaw() - (turnDegree));
-        System.out.println(ANSIcolors.CYAN + "navxTurn botrot: " + targetRotation + ANSIcolors.RESET);
         driveTrain.GoToRotation(turnDegree);
 
         //float goodEnoughDeg = 5.0f;
         if (degreeDifference < goodEnoughDeg) {
             driveTrain.drive(0, 0, 0, false, true);
-            targetRotation += navx.getYaw();
+            targetRotation = navx.getYaw();
             isDone = true;
         }
     }

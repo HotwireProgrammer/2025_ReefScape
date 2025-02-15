@@ -2,10 +2,10 @@ package frc.robot;
 
 // Imports
 import java.util.LinkedList;
-import frc.robot.ANSIcolors;
+
+import javax.print.FlavorException;
+
 import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.AbsoluteEncoder;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.math.MathUtil;
@@ -21,16 +21,11 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.autostep.AutoStep;
-import frc.robot.autostep.DriveDistanceStep;
-import frc.robot.autostep.LimelightTrack;
 import frc.robot.autostep.NavxTurn;
-import frc.robot.autostep.SolenoidStep;
 import frc.robot.autostep.SwerveAutoDriveStep;
 import frc.robot.autostep.Wait;
 import frc.robot.swerve.Constants.OIConstants;
 import frc.robot.swerve.DriveSubsystem;
-import frc.robot.autostep.AutoStep;
-import frc.robot.Auto;
 
 public class Robot extends TimedRobot {
 
@@ -39,8 +34,8 @@ public class Robot extends TimedRobot {
 	Timer timer2 = new Timer();
 	// Joysticks
 	public Joystick operator;
-	public boolean arcadeDrive = false;
 	public Joystick driver;
+	public boolean arcadeDrive = false;
 
 	// motors here
 	// arm motors relative to pick-up position
@@ -53,6 +48,7 @@ public class Robot extends TimedRobot {
 	public SparkMax armMotorRotate = new SparkMax(33, MotorType.kBrushless);
 
 	public boolean climberFlapsState = false;
+	public boolean DesiredclimberFlapsState = false;
 
 	public Limelight limelight = new Limelight();
 
@@ -84,7 +80,7 @@ public class Robot extends TimedRobot {
 	// public Timer clawStopTimer = new Timer();
 
 	public boolean holding = false;
-	public boolean coralSolenoidState = true;
+	public boolean coralSolenoidState = false;
 	public boolean climberSolenoidState = false;
 	public boolean algaeSolenoidState = false;
 
@@ -92,6 +88,8 @@ public class Robot extends TimedRobot {
 	public Timer climberStepTimer;
 	public boolean firstClick = false;
 	public boolean secondClick = false;
+
+	public double hCoefficent = 0.13;
 
 	public float voltComp(float percent) {
 		return (float) (12.6 * percent / RobotController.getBatteryVoltage());
@@ -174,7 +172,7 @@ public class Robot extends TimedRobot {
 			testAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.3f, 0.0f, 0.0f, 0.25f));
 		}
 
-		autonomousSelected = firstAuto; // Auto Selection
+		autonomousSelected = testAuto; // Auto Selection
 
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
@@ -203,12 +201,12 @@ public class Robot extends TimedRobot {
 	}
 
 	public void teleopInit() {
+		SmartDashboard.putNumber("Hold Coefficent", hCoefficent);
 
 		limelight.SetLight(false);
 
 		NetworkTableInstance.getDefault().getTable("limelight").getEntry("stream").setNumber(0);
-		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(0); // Try changing
-																									// 'value' to '1'
+		NetworkTableInstance.getDefault().getTable("limelight").getEntry("pipeline").setNumber(1);
 
 		// 𝐂𝐎𝐍𝐓𝐑𝐎𝐋𝐋𝐄𝐑𝐒 🎮
 		driver = new Joystick(1);
@@ -260,18 +258,16 @@ public class Robot extends TimedRobot {
 		if (operator.getRawButtonPressed(1)) {
 			coralSolenoidState = !coralSolenoidState;
 		}
-
 		if (coralSolenoidState) {
-			coralSolenoid.set(Value.kForward);
-		} else {
 			coralSolenoid.set(Value.kReverse);
+		} else {
+			coralSolenoid.set(Value.kForward);
 		}
 
 		// algae solenoid
 		if (operator.getRawButtonPressed(5)) {
 			algaeSolenoidState = !algaeSolenoidState;
 		}
-
 		if (algaeSolenoidState) {
 			algaeSolenoid.set(Value.kForward);
 		} else {
@@ -281,72 +277,58 @@ public class Robot extends TimedRobot {
 		double axis2 = operator.getRawAxis(2);
 		double axis3 = operator.getRawAxis(3);
 		if (axis2 >= 0.1) {
-			climbingWinch.set(0.4 * axis2);
+			climbingWinch.set(0.25 * axis2);
 		} else if (axis3 >= 0.1) {
-			climbingWinch.set(-0.4 * axis3);
+			climbingWinch.set(-0.25 * axis3);
 		} else {
 			climbingWinch.set(0);
 		}
 
-		/*
-		 * whiskers yes
-		 * beak yes
-		 * winch dunno
-		 */
+		// climbing flappies
+		if (driver.getRawButtonPressed(2)) {
+			timer2.reset();
+			timer2.start();
+			climberFlaps.set(0.10);
+		} else if (driver.getRawButtonPressed(4)) {
+			timer2.reset();
+			timer2.start();
+			climberFlaps.set(-0.10);
+		}
+		if (timer2.get() >= 0.75) {
+			climberFlaps.set(0.00);
+			timer2.stop();
+		}
 
-		// System.out.println(ANSIcolors.RED + "Limit Switch 3 - " +
-		// limitSwitchThree.get() + ANSIcolors.RESET);
+		// Climber Solenoid (Beak) Holding and release. NO TOUCHY
+		if (operator.getRawButton(4)) {
 
-		// Value v = climberSolenoid.get();
-		// SmartDashboard.putString("solenoid", v.toString());
+			climberSolenoid.set(Value.kReverse);
 
-		// Toggle for the solenoid controlling the climbing hooks
+		} else {
 
-		if (operator.getRawButtonPressed(4)) {
-			if (climberSolenoidState) {
-				climberSolenoidState = false;
+			if (limitSwitchThree.get()) {
+				climberSolenoid.set(Value.kForward);
 			} else {
-				climberSolenoidState = true;
+				climberSolenoid.set(Value.kReverse);
 			}
 		}
 
-		if (climberSolenoidState) {
-			climberSolenoid.set(Value.kForward);
+		double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition();
+		double angleDeterminedSpeed = Math.cos(encoderVal);
+		if (operator.getRawButton(7)) {
+			double motorOut = (-(hCoefficent * angleDeterminedSpeed)) + (operator.getRawAxis(1) / 10);
+
+			if (motorOut < -0.9) {
+				motorOut = -0.9;
+			} else if (motorOut > 1.0) {
+				motorOut = 1.0;
+			}
+			System.out.println(motorOut);
+			armMotorRotate.set(motorOut);
+
 		} else {
-			climberSolenoid.set(Value.kReverse);
+			armMotorRotate.set(0);
 		}
-
-		// if (operator.getRawButtonPressed(7)) {
-		// if (climberFlapsState) { // false = up, true = down.
-		// climberFlaps.set(-0.10);
-		// } else {
-		// climberFlaps.set(0.10);
-		// }
-
-		// timer2.reset();
-		// timer2.start();
-
-		// } // Toggles climberFlaps
-		// if (timer2.get() >= 0.7) {
-		// climberFlapsState = !climberFlapsState;
-		// timer2.stop();
-		// climberFlaps.set(0);
-		// }
-		// // ONLY ENABLES if the LS & flaps are down!
-
-		// if (limitSwitchThree.get() && climberFlapsState) {
-		// timer1.reset();
-		// timer1.start();
-		// climberSolenoid.set(Value.kForward);
-		// if (timer1.get() >= 0.5) {
-		// climbingWinch.set(0.10);
-		// }
-		// if (timer1.get() >= 2) {
-		// climbingWinch.set(0);
-		// }
-		// } else {
-		// climbingWinch.set(0);
-		// }
 
 		swerveDrive.drive(
 				-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband), // 0.05
@@ -357,19 +339,14 @@ public class Robot extends TimedRobot {
 		// zero
 		if (driver.getRawButton(1)) {
 			swerveDrive.zeroHeading();
-
 		}
 
-		final double hCoefficent = 0.25;
-		double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition();
-		double angleDeterminedSpeed = Math.cos(encoderVal);
-		System.out.println("Speed : " + angleDeterminedSpeed);
-		if (operator.getRawButton(7)) {
-			System.out.println("Motor enabled");
-			armMotorRotate.set(-(hCoefficent * angleDeterminedSpeed));
-		} else {
-			armMotorRotate.set(0);
-		}
+		// the fist of khonshu..
+
+		// the MOON..
+
+		// hCoefficent = SmartDashboard.getNumber("Hold Coefficent", hCoefficent);
+
 	}
 
 	public float DriveScaleSelector(float ControllerInput, DriveScale selection) {

@@ -1,7 +1,7 @@
 package frc.robot.autostep;
 
 public abstract class AutoStep {
-    public float botrot = 0.0f;
+    public double targetRotation = 0.0;
     public boolean isDone;
 
     public boolean autoIndex = true;

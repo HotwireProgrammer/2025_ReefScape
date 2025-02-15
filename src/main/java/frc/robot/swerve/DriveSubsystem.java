@@ -53,7 +53,7 @@ public class DriveSubsystem extends SubsystemBase {
   String drotkey = "drive_rot_d";
   public double prot = 0.015;
   public double irot = 0.000;
-  public double drot = 0.0;      
+  public double drot = 0.000;      
 
   public PIDController pid_rot = new PIDController(prot, irot, drot);
 
@@ -281,8 +281,9 @@ public class DriveSubsystem extends SubsystemBase {
     // System.out.println("yaw - " + m_gyro.getYaw());
 
     // calculate
-    float pidOut = (float) pid_rot.calculate(x, targetRotationDegrees); // add 'x' to 'targetRotationDegrees'? ⭐
+    float pidOut = (float) pid_rot.calculate(x, targetRotationDegrees /*+ x*/); // add 'x' to 'targetRotationDegrees'? ⭐
 
     drive(0, 0, -pidOut, true, true);
-  }  
+  }
+  
 }
