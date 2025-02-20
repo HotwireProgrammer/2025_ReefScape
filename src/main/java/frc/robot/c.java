@@ -1,8 +1,8 @@
 package frc.robot;
 
-public class ANSIcolors {
-    // Console Colors why not?
-    public static final String RESET = "\033[0m";
+public class c {
+    // Reset
+    public static final String RESET = "\033[0m";  // Text Reset
 
     // Regular Colors
     public static final String BLACK = "\033[0;30m";   // BLACK

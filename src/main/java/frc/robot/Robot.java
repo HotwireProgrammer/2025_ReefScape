@@ -1,5 +1,6 @@
 package frc.robot;
 
+import java.io.File;
 // Imports
 import java.util.LinkedList;
 
@@ -8,6 +9,10 @@ import javax.print.FlavorException;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 
+import java.awt.*;
+import java.io.File;
+import javax.swing.*;
+import java.util.*;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.Compressor;
@@ -19,7 +24,10 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.autostep.AutoStep;
 import frc.robot.autostep.NavxTurn;
 import frc.robot.autostep.SwerveAutoDriveStep;
@@ -28,6 +36,10 @@ import frc.robot.swerve.Constants.OIConstants;
 import frc.robot.swerve.DriveSubsystem;
 
 public class Robot extends TimedRobot {
+	private Command autonomousCommand;
+	private RobotContainer robotContainer;
+	// private final SendableChooser<Command> autoChooser;
+
 
 	// Timer
 	Timer timer1 = new Timer();
@@ -45,10 +57,11 @@ public class Robot extends TimedRobot {
 
 	public SparkMax armMotorTop = new SparkMax(31, MotorType.kBrushless);
 	public SparkMax armMotorBottom = new SparkMax(32, MotorType.kBrushless);
-	public SparkMax armMotorRotate = new SparkMax(33, MotorType.kBrushless);
 
+	public SparkMax armMotorRotate = new SparkMax(33, MotorType.kBrushless);
+	double encoderS;
+	double encoderF;
 	public boolean climberFlapsState = false;
-	public boolean DesiredclimberFlapsState = false;
 
 	public Limelight limelight = new Limelight();
 
@@ -80,7 +93,7 @@ public class Robot extends TimedRobot {
 	// public Timer clawStopTimer = new Timer();
 
 	public boolean holding = false;
-	public boolean coralSolenoidState = false;
+	public boolean coralSolenoidState = true;
 	public boolean climberSolenoidState = false;
 	public boolean algaeSolenoidState = false;
 
@@ -97,13 +110,14 @@ public class Robot extends TimedRobot {
 
 	public Robot() {
 		super();
+		robotContainer = new RobotContainer();
 	}
 
 	public void robotInit() {
-		System.out.println(ANSIcolors.PURPLE + "Success!" + ANSIcolors.RESET);
+		System.out.println(c.PURPLE + "Successful Initialization" + c.RESET);
 		compressor = new Compressor(PneumaticsModuleType.REVPH);
 		coralSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 1, 0);
-		climberSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 3, 2);
+		climberSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 2, 3);
 		algaeSolenoid = new DoubleSolenoid(50, PneumaticsModuleType.REVPH, 4, 5);
 
 		// Limelight
@@ -131,24 +145,24 @@ public class Robot extends TimedRobot {
 
 		firstAuto = new LinkedList<AutoStep>();
 		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.65f, 0.0f, 0.0f, 1.025f));
-		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -45.0f, 0.0f,
-		// 2.0f));
-		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.5f, 0.0f, 0.0f, 0.40f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.0f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0.0f, 0.0f, 0.30f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 65.0f, 0.0f, 2.0f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.45f, 0.0f, 0.0f, 2.0f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 118.0f, 0.0f, 2.0f));
-		firstAuto.add(new Wait(0.10f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.60f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.5f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.50f, 0.0f, 0.0f, 0.60f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 55.0f, 0.0f, 2.0f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.45f, 0.0f, 0.0f, 2.0f));
-		firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 1.0f, 0.0f, 2.0f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
-		firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.35f));
+		// // firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -45.0f, 0.0f,
+		// // 2.0f));
+		// // firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.5f, 0.0f, 0.0f, 0.40f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.0f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.25f, 0.0f, 0.0f, 0.30f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 65.0f, 0.0f, 2.0f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.45f, 0.0f, 0.0f, 2.0f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 118.0f, 0.0f, 2.0f));
+		// firstAuto.add(new Wait(0.10f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.60f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 1.5f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.50f, 0.0f, 0.0f, 0.60f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 55.0f, 0.0f, 2.0f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.45f, 0.0f, 0.0f, 2.0f));
+		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 1.0f, 0.0f, 2.0f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.0f, 0.0f, 0.5f));
+		// firstAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.50f, 0.0f, 0.0f, 0.35f));
 
 		// Turning test EXPERIMENTAL
 		// firstAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, (float)
@@ -172,10 +186,20 @@ public class Robot extends TimedRobot {
 			testAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.3f, 0.0f, 0.0f, 0.25f));
 		}
 
-		autonomousSelected = testAuto; // Auto Selection
+		autonomousSelected = firstAuto; // Auto Selection
 
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
+
+
+
+
+
+		// autonomousCommand = robotContainer.getAutonomousCommand();
+		// if (autonomousCommand != null) {
+		// 	autonomousCommand.schedule();
+		// }
+
 	}
 
 	public void autonomousPeriodic() {
@@ -198,9 +222,13 @@ public class Robot extends TimedRobot {
 			swerveDrive.drive(0, 0, 0, false, true);
 		}
 
+
+
 	}
 
 	public void teleopInit() {
+		//String basePath = new File("").getAbsolutePath(); Window window = new Window("Hotwire Robotics", null, 2494, 628); window.addImage(basePath + "logo.png", 1.0, 1247, 314); window.show();
+
 		SmartDashboard.putNumber("Hold Coefficent", hCoefficent);
 
 		limelight.SetLight(false);
@@ -241,7 +269,7 @@ public class Robot extends TimedRobot {
 				armMotorBottom.set(0.1);
 				// algaeSolenoidState = false;
 			}
-		} else if (operator.getRawButton(3)) {// expell
+		} else if (operator.getRawButton(5)) {// expell
 			armMotorTop.set(-0.8);
 			armMotorBottom.set(-0.8);
 		} else {// default
@@ -265,7 +293,7 @@ public class Robot extends TimedRobot {
 		}
 
 		// algae solenoid
-		if (operator.getRawButtonPressed(5)) {
+		if (operator.getRawButtonPressed(3)) {
 			algaeSolenoidState = !algaeSolenoidState;
 		}
 		if (algaeSolenoidState) {
@@ -274,8 +302,8 @@ public class Robot extends TimedRobot {
 			algaeSolenoid.set(Value.kReverse);
 		}
 
-		double axis2 = operator.getRawAxis(2);
-		double axis3 = operator.getRawAxis(3);
+		double axis2 = driver.getRawAxis(2);
+		double axis3 = driver.getRawAxis(3);
 		if (axis2 >= 0.1) {
 			climbingWinch.set(0.25 * axis2);
 		} else if (axis3 >= 0.1) {
@@ -285,50 +313,84 @@ public class Robot extends TimedRobot {
 		}
 
 		// climbing flappies
+		
+
 		if (driver.getRawButtonPressed(2)) {
 			timer2.reset();
 			timer2.start();
+			climberFlapsState = true;
 			climberFlaps.set(0.10);
 		} else if (driver.getRawButtonPressed(4)) {
 			timer2.reset();
 			timer2.start();
+			climberFlapsState = false;
 			climberFlaps.set(-0.10);
 		}
 		if (timer2.get() >= 0.75) {
 			climberFlaps.set(0.00);
-			timer2.stop();
+			// if (climberFlapsState) {
+			// 	climberFlaps.set(0.02);
+			//  System.out.println(c.RED + "Holding climber flaps" + c.RESET);
+			// } else {
+			// 	climberFlaps.set(-0.02);
+			//  System.out.println(c.RED + "Holding climber flaps" + c.RESET);
+			// } else {
+			//  System.out.println("Help, me no work");
+			// }
+			timer2.stop(); timer2.reset();
 		}
 
 		// Climber Solenoid (Beak) Holding and release. NO TOUCHY
-		if (operator.getRawButton(4)) {
-
-			climberSolenoid.set(Value.kReverse);
-
-		} else {
-
-			if (limitSwitchThree.get()) {
-				climberSolenoid.set(Value.kForward);
-			} else {
+		if (driver.getRawButtonPressed(6)) {
+			if (climberSolenoid.get() == Value.kForward) {
 				climberSolenoid.set(Value.kReverse);
+			} else {
+				climberSolenoid.set(Value.kForward);
 			}
-		}
+		} /*else if (limitSwitchThree.get()) {
+			climberSolenoid.set(Value.kForward);
+			climberFlaps.set(0.00); // stop the climberFlaps from force-holding position.
+		}*/
 
-		double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition();
-		double angleDeterminedSpeed = Math.cos(encoderVal);
+		double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition() - MathE.TAU;
+
+		double motorOut;
+		double angleDeterminedSpeed = Math.cos(encoderVal) * 0.7;
 		if (operator.getRawButton(7)) {
-			double motorOut = (-(hCoefficent * angleDeterminedSpeed)) + (operator.getRawAxis(1) / 10);
+			if (encoderVal < 0) {
+				if (algaeSolenoid.get() == Value.kReverse) {
+					motorOut = (-(hCoefficent * angleDeterminedSpeed)) + (operator.getRawAxis(1) / 7);
+				} else {
+					motorOut = 0;
+				}
+			} else {
+				motorOut = (-(hCoefficent * angleDeterminedSpeed)) + (operator.getRawAxis(1) / 7);
+			}
 
 			if (motorOut < -0.9) {
 				motorOut = -0.9;
 			} else if (motorOut > 1.0) {
 				motorOut = 1.0;
 			}
-			System.out.println(motorOut);
 			armMotorRotate.set(motorOut);
 
 		} else {
 			armMotorRotate.set(0);
 		}
+
+		// D0 radians/decisecond or millisecond?
+
+		// timer2.reset(); timer2.start();
+		// double holdSpeed = 0.10;
+		// if (timer2.get() == 0) {
+		// encoderF = armMotorRotate.getAbsoluteEncoder().getPosition();
+		// } else if (timer2.get() >= 0.01) {
+		// encoderS = armMotorRotate.getAbsoluteEncoder().getPosition();
+		// }
+		// if ((encoderF - encoderS) >= 0) {
+
+		// }
+		// armMotorRotate.set(holdSpeed);
 
 		swerveDrive.drive(
 				-MathUtil.applyDeadband(axisOne, OIConstants.kDriveDeadband), // 0.05
@@ -390,11 +452,6 @@ public class Robot extends TimedRobot {
 	}
 
 	public static float Lerp(float v0, float v1, float t) {
-		/*
-		 * t = Math.abs(t);
-		 * if (t > 1) {t = 1;}
-		 * return (v0 + t * (v1 - v0));
-		 */
 		if (t < 0) {
 			t = 0;
 		} else if (t > 1) {

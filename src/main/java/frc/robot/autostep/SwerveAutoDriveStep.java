@@ -11,12 +11,15 @@ public class SwerveAutoDriveStep extends AutoStep {
     float Spin;
     Timer timer;
     float time;
+    float cf;
 
     public SwerveAutoDriveStep(DriveSubsystem swerve, float xSpeed, float ySpeed, float spin, float time) {
         super();
+        cf = 2.00f;
+
         this.swerve = swerve;
-        this.xSpeed = xSpeed;
-        this.ySpeed = ySpeed;
+        this.xSpeed = xSpeed * cf;
+        this.ySpeed = ySpeed * cf;
         Spin = spin;
         timer = new Timer();
         this.time = time;
