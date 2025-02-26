@@ -2,7 +2,6 @@ package frc.robot.autostep;
 
 import com.studica.frc.AHRS;
 import frc.robot.swerve.DriveSubsystem;
-import frc.robot.c;
 
 public class NavxTurnAccum extends AutoStep {
 

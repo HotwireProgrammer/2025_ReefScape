@@ -1,7 +1,6 @@
 package frc.robot.autostep;
 
 import edu.wpi.first.wpilibj.Timer;
-import frc.robot.swerve.DriveSubsystem;
 
 
 public class Wait extends AutoStep {

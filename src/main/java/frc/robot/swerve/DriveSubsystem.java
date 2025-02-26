@@ -34,22 +34,22 @@ import frc.robot.swerve.Constants.DriveConstants;
 public class DriveSubsystem extends SubsystemBase {
 
   // Create MAXSwerveModules
-  private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
+  public final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       Constants.DriveConstants.kFrontLeftDrivingCanId,
       Constants.DriveConstants.kFrontLeftTurningCanId,
       Constants.DriveConstants.kFrontLeftChassisAngularOffset);
 
-  private final MAXSwerveModule m_frontRight = new MAXSwerveModule(
+  public final MAXSwerveModule m_frontRight = new MAXSwerveModule(
       Constants.DriveConstants.kFrontRightDrivingCanId,
       Constants.DriveConstants.kFrontRightTurningCanId,
       Constants.DriveConstants.kFrontRightChassisAngularOffset);
 
-  private final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
+  public final MAXSwerveModule m_rearLeft = new MAXSwerveModule(
       Constants.DriveConstants.kRearLeftDrivingCanId,
       Constants.DriveConstants.kRearLeftTurningCanId,
       Constants.DriveConstants.kBackLeftChassisAngularOffset);
 
-  private final MAXSwerveModule m_rearRight = new MAXSwerveModule(
+  public final MAXSwerveModule m_rearRight = new MAXSwerveModule(
       Constants.DriveConstants.kRearRightDrivingCanId,
       Constants.DriveConstants.kRearRightTurningCanId,
       Constants.DriveConstants.kBackRightChassisAngularOffset);
@@ -261,7 +261,7 @@ public class DriveSubsystem extends SubsystemBase {
    *                      field.
    */
   public void drive(double xSpeed, double ySpeed, double rot, boolean fieldRelative, boolean rateLimit) {
-    ChassisSpeeds speeds = new ChassisSpeeds(xSpeed, ySpeed, rot) ;
+    ChassisSpeeds speeds = new ChassisSpeeds(xSpeed, ySpeed, rot);
 
     if (rateLimit) {
       speeds = rateLimitChassisSpeeds(speeds) ;

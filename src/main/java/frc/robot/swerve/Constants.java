@@ -59,26 +59,37 @@ public class Constants {
     // 7 - 8
 
     
+    boolean isTesting = false;
 
-    public static int[] IDs = {
-
-       1 , 7 , 3 , 5 , 2 , 8 , 4 , 6 , 10 , 9 , 11 , 17 , 13 , 15 , 12 , 18 , 14 , 16 
-
-      };
-
-    public static int drivetrainNum = 2; // 1 or 2
-
-    public static int kFrontLeftDrivingCanId = IDs[(0 + ((drivetrainNum - 1) * 10))];
-    public static int kRearLeftDrivingCanId = IDs[(1 + ((drivetrainNum - 1) * 10))];
-    public static int kFrontRightDrivingCanId = IDs[(2 + ((drivetrainNum - 1) * 10))];
-    public static int kRearRightDrivingCanId = IDs[(3 + ((drivetrainNum - 1) * 10))];
-
-    public static int kFrontLeftTurningCanId = IDs[(4 + ((drivetrainNum - 1) * 10))];   
-    public static int kRearLeftTurningCanId = IDs[(5 + ((drivetrainNum - 1) * 10))];
-    public static int kFrontRightTurningCanId = IDs[(6 + ((drivetrainNum - 1) * 10))];
-    public static int kRearRightTurningCanId = IDs[(7 + ((drivetrainNum - 1) * 10))];
     
+      // public static int[] IDs = {
 
+      //    1 , 11 , 3 , 5 , 2 , 12 , 4 , 6 , 10 , 9 , 7 , 17 , 13 , 15 , 8 , 18 , 14 , 16 
+
+      //   };
+
+      // public static int drivetrainNum = 2; // 1 or 2
+
+      // public static int kFrontLeftDrivingCanId = IDs[(0 + ((drivetrainNum - 1) * 10))];
+      // public static int kRearLeftDrivingCanId = IDs[(1 + ((drivetrainNum - 1) * 10))];
+      // public static int kFrontRightDrivingCanId = IDs[(2 + ((drivetrainNum - 1) * 10))];
+      // public static int kRearRightDrivingCanId = IDs[(3 + ((drivetrainNum - 1) * 10))];
+
+      // public static int kFrontLeftTurningCanId = IDs[(4 + ((drivetrainNum - 1) * 10))];   
+      // public static int kRearLeftTurningCanId = IDs[(5 + ((drivetrainNum - 1) * 10))];
+      // public static int kFrontRightTurningCanId = IDs[(6 + ((drivetrainNum - 1) * 10))];
+      // public static int kRearRightTurningCanId = IDs[(7 + ((drivetrainNum - 1) * 10))];
+    
+    
+    public static int kFrontLeftDrivingCanId = 7;
+    public static int kRearLeftDrivingCanId = 17;
+    public static int kFrontRightDrivingCanId = 13;
+    public static int kRearRightDrivingCanId = 15;
+
+    public static int kFrontLeftTurningCanId = 8;   
+    public static int kRearLeftTurningCanId = 18;
+    public static int kFrontRightTurningCanId = 14;
+    public static int kRearRightTurningCanId = 16;
 
     public static final boolean kGyroReversed = false;
   

@@ -8,6 +8,13 @@
       "type": "java",
       "name": "Main",
       "request": "launch",
+      "mainClass": "frc.window.Main",
+      "projectName": "2025_2990_ReefscapeNew-main"
+    },
+    {
+      "type": "java",
+      "name": "Main",
+      "request": "launch",
       "mainClass": "frc.robot.Main",
       "projectName": "2025_2990_ReefscapeNew-main"
     },
