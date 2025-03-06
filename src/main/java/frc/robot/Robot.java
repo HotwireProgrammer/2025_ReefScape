@@ -3,6 +3,7 @@ package frc.robot;
 // Imports
 import java.util.LinkedList;
 
+import javax.imageio.ImageIO;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
@@ -20,27 +21,31 @@ import edu.wpi.first.wpilibj.PneumaticsModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.autostep.ArmEjectStep;
 import frc.robot.autostep.ArmIntakeStep;
 import frc.robot.autostep.AutoStep;
 import frc.robot.autostep.DriveDistanceStep;
+import frc.robot.autostep.LowerAlgaePosAsyncStep;
 import frc.robot.autostep.LowerAlgaePosStep;
 import frc.robot.autostep.MotorMoveStep;
 import frc.robot.autostep.NavxTurn;
+import frc.robot.autostep.Print;
 import frc.robot.autostep.SolenoidStep;
 import frc.robot.autostep.SwerveAutoDriveStep;
-import frc.robot.autostep.Wait;
+import frc.robot.autostep.WaitStep;
+import frc.robot.autostep.ZeroHeadingStep;
 import frc.robot.swerve.Constants.OIConstants;
 import frc.robot.swerve.DriveSubsystem;
+import java.awt.image.*;
+import java.io.File;
+import java.io.IOException;
+import java.awt.*;
 
 public class Robot extends TimedRobot {
 	private Command autonomousCommand;
-	private RobotContainer robotContainer;
+	// private RobotContainer robotContainer;
 	// private final SendableChooser<Command> autoChooser;
 
 
@@ -48,6 +53,7 @@ public class Robot extends TimedRobot {
 	Timer timer1 = new Timer();
 	Timer timer2 = new Timer();
 	Timer timer3 = new Timer();
+	Timer timer4 = new Timer();
 	// Joysticks
 	public Joystick operator;
 	public Joystick driver;
@@ -75,12 +81,14 @@ public class Robot extends TimedRobot {
 		linear, squared, tangent, inverse, cb, cbrt,
 	}
 
-	public DriveSubsystem swerveDrive = new DriveSubsystem();
+	public static DriveSubsystem swerveDrive = new DriveSubsystem();
 
 	// Auto
 	public LinkedList<AutoStep> firstAuto;
+	public LinkedList<AutoStep> mainAutoTwo;
 	public LinkedList<AutoStep> mainAuto;
-	public LinkedList<AutoStep> testAuto;
+	public LinkedList<AutoStep> taxiAuto;
+	public LinkedList<AutoStep> fourStepSquare;
 
 	public LinkedList<AutoStep> autonomousSelected;
 	public int currentAutoStep = 0;
@@ -90,7 +98,7 @@ public class Robot extends TimedRobot {
 	// 𝐏𝐧𝐞𝐮𝐦𝐚𝐭𝐢𝐜𝐬
 	public DoubleSolenoid climberSolenoid;
 	public DoubleSolenoid coralSolenoid;
-	public static DoubleSolenoid algaeSolenoid;
+	public DoubleSolenoid algaeSolenoid;
 
 	public Compressor compressor;
 
@@ -102,7 +110,7 @@ public class Robot extends TimedRobot {
 	public boolean holding = false;
 	public boolean coralSolenoidState = true;
 	public boolean climberSolenoidState = false;
-	public static boolean algaeSolenoidState = false;
+	public boolean algaeSolenoidState = false;
 
 	public int climbStep = 0;
 	public Timer climberStepTimer;
@@ -117,12 +125,12 @@ public class Robot extends TimedRobot {
 
 	public Robot() {
 		super();
-		robotContainer = new RobotContainer();
+		// robotContainer = new RobotContainer();
 	}
 
 	public void robotInit() {
 
-		DriverStation.reportWarning(c.PURPLE + "Successful Initialization" + c.RESET, true);
+		// convertToANSI(loadImage((new File("").getAbsolutePath()) + "/logo.png"));
 		
 		armPID.enableContinuousInput(0, MathE.TAU);
 		SmartDashboard.putNumber("ArmP", armPID.getP());
@@ -149,11 +157,14 @@ public class Robot extends TimedRobot {
 		compressor.enableDigital();
 
 		swerveDrive.Init();
+
+		DriverStation.reportWarning("Successful Initialization", true);
 	}
 
 
 	public void robotPeriodic() {
 		// CommandScheduler.getInstance().run();
+		// Robot.explode
 	}
 	
 
@@ -207,32 +218,72 @@ public class Robot extends TimedRobot {
 		// 1.0f));
 		// firstAuto.add(new Wait(1.5f));
 
-		mainAuto = new LinkedList<AutoStep>(); // Attempt once ⭐ method in 'DriveSubsystem' is implemented.
+		mainAutoTwo = new LinkedList<AutoStep>();
+		// mainAuto.add(new Print("Running mainAuto"));
+		mainAutoTwo.add(new SolenoidStep(coralSolenoid, Value.kReverse));
+		mainAutoTwo.add(new MotorMoveStep(armMotorRotate, 0.7f, 0.13f));
+		mainAutoTwo.add(new SwerveAutoDriveStep(
+			swerveDrive, 
+			0.0f, 0.25f, 
+			0.0f, 
+			0.9f, 
+			false));
+		mainAutoTwo.add(new LowerAlgaePosAsyncStep(0.42));
+		mainAutoTwo.add(new SwerveAutoDriveStep(swerveDrive, 0.25f, 0.0f, 0.0f, 0.90f, false));
+		mainAutoTwo.add(new ArmIntakeStep());
+		mainAutoTwo.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, -0.15f, 0.0f, 0.75f, false));
+		mainAutoTwo.add(new MotorMoveStep(armMotorRotate, 0.0f, 0.0f));
+		mainAutoTwo.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -87.0f, 0.0f, 2.0f));
+		mainAutoTwo.add(new SwerveAutoDriveStep(swerveDrive, 0.18f, 0.0f, 0.0f, 0.75f, false));
+		mainAutoTwo.add(new SolenoidStep(coralSolenoid, Value.kForward));
+		mainAutoTwo.add(new WaitStep(0.8f));
+		mainAutoTwo.add(new SwerveAutoDriveStep(swerveDrive, -0.12f, 0.0f, 0.0f, 0.43f, false));
+		mainAutoTwo.add(new SwerveAutoDriveStep(swerveDrive, -0.22f, 0.0f, 0.0f, 3.8f, true));
+		mainAutoTwo.add(new ArmEjectStep());
+		mainAutoTwo.add(new ZeroHeadingStep());
+
+
+
+		fourStepSquare = new LinkedList<AutoStep>();
+		fourStepSquare.add(new SwerveAutoDriveStep(swerveDrive, 0.22f, 0.0f, 0.0f, 0.25f, true));
+		fourStepSquare.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.22f, 0.0f, 0.25f, true));
+		fourStepSquare.add(new SwerveAutoDriveStep(swerveDrive, -0.22f, 0.0f, 0.0f, 0.25f, true));
+		fourStepSquare.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, -0.22f, 0.0f, 0.25f, true));
+		
+
+
+
+
+
+
+
+
+
+		mainAuto = new LinkedList<AutoStep>();
+
 		mainAuto.add(new SolenoidStep(coralSolenoid, Value.kReverse));
-		mainAuto.add(new MotorMoveStep(armMotorRotate, 0.7f, 0.13f));
-		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.25f, 0.0f, 0.9f, false));
-		mainAuto.add(new LowerAlgaePosStep(0.34));
-		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.15f, 0.0f, 0.70f, false));
-		mainAuto.add(new ArmIntakeStep());
-		mainAuto.add(new LowerAlgaePosStep(0.35));
-		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, -0.15f, 0.0f, 0.75f, false));
-		mainAuto.add(new MotorMoveStep(armMotorRotate, 0.0f, 0.0f));
-		mainAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, -87.0f, 0.0f, 2.0f));
-		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.18f, 0.0f, 0.0f, 0.75f, false));
+		mainAuto.add(new MotorMoveStep(armMotorRotate, 0.55f, 0.15f));
+		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.20f, 0.00f, 0.0f, 1.62f, false));
 		mainAuto.add(new SolenoidStep(coralSolenoid, Value.kForward));
-		mainAuto.add(new Wait(0.8f));
-		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.12f, 0.0f, 0.0f, 0.43f, false));
-		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.22f, 0.0f, 0.0f, 3.30f, true));
+		mainAuto.add(new WaitStep(0.8f));
+		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, -0.15f, 0.0f, 0.0f, 0.82f, false));
+		mainAuto.add(new LowerAlgaePosAsyncStep(0.27));
+		mainAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 86.0f, 0.0f, 2.0f));
+		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.20f, 0.0f, 0.75f, false));
+		mainAuto.add(new ArmIntakeStep());
+		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, -0.15f, 0.0f, 0.75f, false));
+		mainAuto.add(new NavxTurn(swerveDrive, swerveDrive.m_gyro, 1.0f, 0.0f, 2.0f));
+		mainAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.0f, 0.20f, 0.0f, 4.2f, true));
 		mainAuto.add(new ArmEjectStep());
-		// secondAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.12f, 0.0f, 0.0f, 0.43f, true));
+		mainAuto.add(new ZeroHeadingStep());
 
+
+		taxiAuto = new LinkedList<AutoStep>();
+		taxiAuto.add(new SolenoidStep(coralSolenoid, Value.kReverse));
+		taxiAuto.add(new SwerveAutoDriveStep(swerveDrive, 0.17f, 0.00f, 0.0f, 0.50f, false));
 		
 
-		testAuto = new LinkedList<AutoStep>(); // Attempt once ⭐ method in 'DriveSubsystem' is implemented.
-		testAuto.add(new DriveDistanceStep(swerveDrive, 1.0));
-		
-
-		autonomousSelected = mainAuto; // Auto Selection
+		autonomousSelected = taxiAuto; // Auto Selection
 
 		autonomousSelected.get(0).Begin();
 		swerveDrive.zeroHeading();
@@ -248,11 +299,10 @@ public class Robot extends TimedRobot {
 
 	}
 
-	public void autonomousPeriodic() {
-		// autonomous loop
+	
 
-		// System.out.println(ANSIcolors.PURPLE + "Current auto step " + currentAutoStep
-		// + ANSIcolors.RESET);
+	public void autonomousPeriodic() {
+		// Autonomous-Loop
 		if (currentAutoStep < autonomousSelected.size()) {
 
 			autonomousSelected.get(currentAutoStep).Update();
@@ -265,7 +315,7 @@ public class Robot extends TimedRobot {
 				}
 			}
 		} else {
-			// Stops the drivetrain.
+			// Ends Drivetrain Motion.
 			swerveDrive.drive(0, 0, 0, false, true);
 		}
 
@@ -345,8 +395,10 @@ public class Robot extends TimedRobot {
 		}
 		if (algaeSolenoidState) {
 			algaeSolenoid.set(Value.kForward);
+			// System.out.println(algaeSolenoid.get());
 		} else {
 			algaeSolenoid.set(Value.kReverse);
+			// System.out.println(algaeSolenoid.get());
 		}
 
 		double axis2 = driver.getRawAxis(2);
@@ -366,7 +418,7 @@ public class Robot extends TimedRobot {
 			timer2.reset();
 			timer2.start();
 			climberFlapsState = true;
-			climberFlaps.set(0.2);
+			climberFlaps.set(0.4);
 		} else if (driver.getRawButtonPressed(4)) {
 			timer2.reset();
 			timer2.start();
@@ -377,10 +429,10 @@ public class Robot extends TimedRobot {
 			climberFlaps.set(0.00);
 			// if (climberFlapsState) {
 			// 	climberFlaps.set(0.02);
-			//  System.out.println(c.RED + "Holding climber flaps" + c.RESET);
+			//  System.out.println("Holding climber flaps");
 			// } else {
 			// 	climberFlaps.set(-0.02);
-			//  System.out.println(c.RED + "Holding climber flaps" + c.RESET);
+			//  System.out.println("Holding climber flaps");
 			// } else {
 			//  System.out.println("Help, me no work");
 			// }
@@ -408,16 +460,23 @@ public class Robot extends TimedRobot {
 		
 
 		double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition() - MathE.TAU;
+		// System.out.println("Arm Rotation Encoder = " + encoderVal + "*r");
 
-		double motorOut;
+
+		// boolean holdAlways = false;
+
+
+
 		double angleDeterminedSpeed = Math.cos(encoderVal) * 0.6;
-		if (operator.getRawButton(9) || operator.getRawButton(7)) {
+		if ((operator.getRawButton(9) || operator.getRawButton(7))) {
+			double motorOut;
+			
 
 			double armInput = 0.0;
 			if (operator.getRawButton(8)) {
 				// todo get arm speed from PID
 
-				armInput = -armPID.calculate(encoderVal, 0.34);
+				armInput = -armPID.calculate(encoderVal, 0.31);
 			} else {
 				armInput = (operator.getRawAxis(1) / 5);
 			}
@@ -428,6 +487,11 @@ public class Robot extends TimedRobot {
 				} else {
 					motorOut = 0;
 				}
+				// if (algaeSolenoid.get() != Value.kForward) {
+				// 	algaeSolenoid.set(Value.kForward);
+				// } else {
+				// 	motorOut = (-(hCoefficent * angleDeterminedSpeed)) + armInput;
+				// }
 			} else {
 				motorOut = (-(hCoefficent * angleDeterminedSpeed)) + armInput;
 			}
@@ -437,24 +501,42 @@ public class Robot extends TimedRobot {
 			} else if (motorOut > 1.0) {
 				motorOut = 1.0;
 			}
-
-			// motorOut += holdAngle(armMotorRotate, MathE.TAU / 8);
-			System.out.println(motorOut);
 			armMotorRotate.set(motorOut);
-			// DriverStation.reportWarning(c.YELLOW + "ArmMotor:Encoder = " + encoderVal + c.RESET, true);
-
 		} else {
 			armMotorRotate.set(0.0);
-			// if (driver.getRawButton(3)) {
-			// 	timer3.reset(); timer3.start();
-			// 	armMotorRotate.set(0.22); /* Math.cos(0.22) * 0.6 */
-			// }
 		}
 
-		// if (timer3.get() > 1.1) {
-		// 	armMotorRotate.set(0.0);
-		// 	timer3.stop(); timer3.reset();
-		// }
+		// System.out.println(encoderVal);
+
+		/*if ((operator.getRawButton(9) || operator.getRawButton(7))) {
+			double encoderVal = armMotorRotate.getAbsoluteEncoder().getPosition() - MathE.TAU;
+
+			double motorOut = 0;
+
+			double angleDeterminedSpeed = Math.cos(encoderVal) * 0.6;
+
+			double armInput = -Robot.armPID.calculate(encoderVal, ((((operator.getRawAxis(1) + 1) / 2) * (1.5 * Math.PI))));
+
+			motorOut = (-(Robot.hCoefficent * angleDeterminedSpeed)) + armInput;
+
+			if (motorOut < -0.9) {
+				motorOut = -0.9;
+			} else if (motorOut > 1.0) {
+				motorOut = 1.0;
+			}
+			
+			armMotorRotate.set(motorOut);
+		} else {
+			armMotorRotate.set(0.0);
+		}*/
+
+
+
+
+
+
+
+
 		
 
 		// D0 radians/decisecond or millisecond?
@@ -481,6 +563,7 @@ public class Robot extends TimedRobot {
 		if (driver.getRawButton(1)) {
 			swerveDrive.zeroHeading();
 		}
+		
 
 		// the fist of khonshu..
 
@@ -537,6 +620,8 @@ public class Robot extends TimedRobot {
 			t = 1;
 		}
 		return (v0 + t * (v1 - v0));
+
+		
 	}
 
 	public float TranslateController(float input) {
@@ -559,5 +644,37 @@ public class Robot extends TimedRobot {
 
 
 		return motorOutputOut;
+	}
+
+	public BufferedImage loadImage(String path) {
+		try {
+			return ImageIO.read(new File(path));
+		} catch (IOException e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	public String convertToANSI(BufferedImage img) {
+		String out = "";
+		for (int x = 0; x < img.getWidth(); x+=(img.getWidth() / 40)) {for (int y = 0; y < img.getHeight(); y+=(img.getHeight() / 40)) {
+			// for every n'th pixel
+			if ((x / img.getWidth()) == Math.round(x / img.getWidth())) {out = out + "\n";}
+			Color colorPX = new Color(img.getRGB(x, y));
+			double mColor = (colorPX.getRed() + colorPX.getGreen() + colorPX.getBlue()) / 3;
+			if (mColor >= (0.9 * 255)) {out = out + "&";} 
+			else if (mColor >= (0.8 * 255)) {out = out + "$";} 
+			else if (mColor >= (0.7 * 255)) {out = out + "X";}
+			else if (mColor >= (0.6 * 255)) {out = out + "x";}
+			else if (mColor >= (0.5 * 255)) {out = out + "=";}
+			else if (mColor >= (0.4 * 255)) {out = out + "+";}
+			else if (mColor >= (0.3 * 255)) {out = out + ";";}
+			else if (mColor >= (0.2 * 255)) {out = out + ".";}
+			else if (mColor >= (0.1 * 255)) {out = out + " ";}
+			
+		}}
+
+		// &$Xx=+;.
+		return out;
 	}
 }

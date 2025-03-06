@@ -2,7 +2,6 @@ package frc.robot.autostep;
 
 import com.studica.frc.AHRS;
 import frc.robot.swerve.DriveSubsystem;
-import frc.robot.c;
 
 public class NavxTurn extends AutoStep {
 
@@ -28,9 +27,7 @@ public class NavxTurn extends AutoStep {
      }
 
     public void Update() {
-        System.out.println(c.RED + "navxTurn turnDegree: " + turnDegree + c.RESET);
         float degreeDifference = Math.abs(navx.getYaw() - (turnDegree));
-        System.out.println(c.CYAN + "navxTurn botrot: " + targetRotation + c.RESET);
         driveTrain.GoToRotation(turnDegree);
 
         //float goodEnoughDeg = 5.0f;

@@ -16,8 +16,8 @@ public class ArmEjectStep extends AutoStep {
     }
 
     public void Update() {
-        Robot.armMotorBottom.set(-0.9);
-        Robot.armMotorTop.set(-0.9);
+        Robot.armMotorBottom.set(-0.7);
+        Robot.armMotorTop.set(-0.7);
 
         if (timer.get() >= 0.3) {
             Robot.armMotorBottom.set(0.0);

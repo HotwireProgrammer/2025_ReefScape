@@ -3,12 +3,12 @@ package frc.robot.autostep;
 import edu.wpi.first.wpilibj.Timer;
 
 
-public class Wait extends AutoStep {
+public class WaitStep extends AutoStep {
 
     public Timer driveTimer;
     public float length;
 
-    public Wait(Float length) {
+    public WaitStep(Float length) {
         super();
         this.length = length;
         driveTimer = new Timer();

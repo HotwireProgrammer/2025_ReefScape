@@ -81,15 +81,21 @@ public class Constants {
       // public static int kRearRightTurningCanId = IDs[(7 + ((drivetrainNum - 1) * 10))];
     
     
-    public static int kFrontLeftDrivingCanId = 7;
-    public static int kRearLeftDrivingCanId = 17;
-    public static int kFrontRightDrivingCanId = 13;
-    public static int kRearRightDrivingCanId = 15;
+    public static int kFrontLeftDrivingCanId = 11;
+    public static int kFrontLeftTurningCanId = 12;   
 
-    public static int kFrontLeftTurningCanId = 8;   
-    public static int kRearLeftTurningCanId = 18;
-    public static int kFrontRightTurningCanId = 14;
-    public static int kRearRightTurningCanId = 16;
+    public static int kRearLeftDrivingCanId = 7;
+    public static int kRearLeftTurningCanId = 14;
+
+    public static int kFrontRightDrivingCanId = 3;
+    public static int kFrontRightTurningCanId = 4;
+
+    public static int kRearRightDrivingCanId = 13;
+    public static int kRearRightTurningCanId = 8;
+
+    
+    
+    
 
     public static final boolean kGyroReversed = false;
   
